@@ -13,9 +13,13 @@ parent_amat<-full_amat[rownames(full_amat)%in%pedigree_download$Accession, colna
 
 ## INIT DB CONNECTION ----------------------
 
-location_iid_map <- list(
-  "WICSCBS" = "3922"
+location_iid_map2 <- list(
+  "WICSCBS_25" = "3917"
 )
+
+# location_iid_map <- list(
+#   "WICSCBS" = "3922"
+# )
 
 #Blocking vector
 block_vector<-c("1"="main")
@@ -23,6 +27,8 @@ block_vector<-c("1"="main")
 crosses_iid_map<-list(
   "FL_25"="3940"  #needs to be updated each year
 )
+
+
 
 brap <- brapi::as.ba_db(
   secure = FALSE,

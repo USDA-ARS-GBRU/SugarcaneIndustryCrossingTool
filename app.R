@@ -96,7 +96,7 @@ ui <- dashboardPage(
 
   ## SIDEBAR ------
   sidebar = dashboardSidebar(
-    selectInput("location", "Step 1: Select Location", choices = location_iid_map),
+    selectInput("location", "Step 1: Select Location", choices = location_iid_map2),
     
     #this is kind of confusing. The idea is that multiple breeders might be working at same location (Florida) and they should be able to track crosses independently, even though cane lines are combined
     #so crossesid refers to crosses a specific breeder is making
@@ -775,7 +775,7 @@ server <- function(input, output, session) {
   
   # Output for inventory pointer
   output$inventoryPointer <- renderText({
-    location <- names(location_iid_map)[location_iid_map == input$location]
+    location <- names(location_iid_map2)[location_iid_map2 == input$location]
     paste("Location:", location, "-", unique(brapi::ba_studies_table(con = brap, studyDbId = input$location)$studyName))
   })
   # Output for cross pointer
