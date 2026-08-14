@@ -1,7 +1,7 @@
 ## read in data (replace with your file path)
 pedigree_download<-read.csv("data/2025ParentPedigree.csv") #needs to be updated each year
 
-historical_crosses<-read.csv("data/HistoricCrossEntries.csv") #needs to be updated each year
+historical_crosses<-read.csv("data/HistoricalCrossEntries.csv") #needs to be updated each year
 
 blup_data<-read.csv("data/StageWiseParentBLUPS.csv")
 colnames(blup_data)[1]<-"Clone"
