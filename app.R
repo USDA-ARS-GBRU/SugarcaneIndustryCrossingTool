@@ -774,10 +774,10 @@ server <- function(input, output, session) {
   download_page_server(input, output, session, reactive_date)
   
   # Output for inventory pointer
-  output$inventoryPointer <- renderText({
-    location <- names(location_iid_map2)[location_iid_map2 == input$location]
-    paste("Location:", location, "-", unique(brapi::ba_studies_table(con = brap, studyDbId = input$location)$studyName))
-  })
+  # output$inventoryPointer <- renderText({
+  #   #location <- names(location_iid_map2)[location_iid_map2 == input$location]
+  #   #paste("Location:", location, "-", unique(brapi::ba_studies_table(con = brap, studyDbId = input$location)$studyName))
+  # })
   # Output for cross pointer
   output$crossPointer <- renderText({
     validate(
