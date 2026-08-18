@@ -6,30 +6,40 @@ flowering_server <- function(input, output, session, reactive_date, reactive_iid
         # Validate inputs
         req(reactive_date(), reactive_iid())
      
-      inven <- data.frame(brapi::ba_studies_table(con = brap, studyDbId = reactive_iid(), rclass="data.frame")) %>%
-        filter(observationLevel == "plot") %>% # select just plant rows
-        set_names(~(.)%>% str_replace_all("SUGARCANE.*","") %>% str_replace_all("\\.","")) %>% # take CO term out of colnames
-        mutate_at('blockNumber', as.factor)
+      #get list of studies for input$location
       
-      inven$blockNumber<-revalue(inven$blockNumber, block_vector)
+      studies_list<-jsonlite::fromJSON(ba_studies(brap2, trialDbId = reactive_iid(), pageSize=2000, rclass="json"))$result$data
       
-      inven_male<-filter(inven, grepl(reactive_date(),TasselCountMale)) %>% 
-        select(germplasmName, blockNumber, notes, germplasmDbId, TasselCountMale) %>% 
-        separate(TasselCountMale, into=c("Count",NA), sep=",") %>%
-        group_by(germplasmName)
+      inven=data.frame()
+     
+       for(i in 1:dim(studies_list)[1]){
+        studyDbId=as.character(studies_list[i,"studyDbId"])
+        
+        tmp<-data.frame(brapi::ba_studies_observations_brapi2(con = brap2, studyDbId = studyDbId , rclass="data.frame"))
+          
+        if(dim(tmp)[1]==0){
+          inven<-inven 
+          } else{
+          tmp<-tmp %>% filter(grepl("Tassel Count", observationVariableName))
+          inven<-rbind(inven, tmp )
+          } 
+        
+      }
+    
+
+      inven_date<-filter(inven, grepl(reactive_date(), observationTimeStamp)) %>% 
+          select(germplasmName, germplasmDbId, observationVariableName, value, observationTimeStamp) %>% 
+          group_by(germplasmName)
       
-      male<-merge(aggregate(as.numeric(Count)~germplasmName+germplasmDbId,inven_male, sum ),
-                  aggregate(blockNumber~germplasmName+germplasmDbId,inven_male, function(x) paste(unique(x), collapse=":")))
+      inven_merge<-aggregate(as.numeric(value)~germplasmName+germplasmDbId,inven_date, sum) #takes into account possibility of multiple plots of same genotype
       
-      inven_female<-filter(inven, grepl(reactive_date(),TasselCountFemale)) %>% 
-        select(germplasmName, blockNumber, germplasmDbId, notes, TasselCountFemale) %>% 
-        separate(TasselCountFemale, into=c("Count",NA), sep=",") %>%
-        group_by(germplasmName)
+      colnames(inven_merge)<-c("Clone", "germplasmDbId", "FlowerCount")
       
-      female<-merge(aggregate(as.numeric(Count)~germplasmName+germplasmDbId,inven_female, sum ),
-                    aggregate(blockNumber~germplasmName+germplasmDbId,inven_female, function(x) paste(unique(x), collapse=":")))
+      #####temp placeholder for sex
+      inven_merge$tempSex<-sample(c("M", "F"), nrow(inven_merge), replace = TRUE)
       
-      colnames(male)<-colnames(female)<-c("Clone", "germplasmDbId", "FlowerCount", "Location")
+      male<-filter(inven_merge, tempSex=="M")
+      female<-filter(inven_merge, tempSex=="F")
       
       inven2<-list(male, female)
       names(inven2)<-c("male", "female")

@@ -50,6 +50,7 @@ source("modules/crosses.R")
 source("modules/download_page.R")
 source("modules/optimization.R")
 source("modules/cubicle.R")
+#source("modules/cloneproperties.R")
 
 
 ## THEME
@@ -58,6 +59,8 @@ source("modules/cubicle.R")
 ## CHECK if true connection
 brapi::ba_check(brap) # should be true, for debugging
 
+brapi::ba_login(brap) #important if database requires login for brapi queries
+brapi::ba_login(brap2) 
 # USER INTERFACE  -------------------------------------------------------------
 
 ui <- dashboardPage(
@@ -93,7 +96,7 @@ ui <- dashboardPage(
 
   ## SIDEBAR ------
   sidebar = dashboardSidebar(
-    selectInput("location", "Step 1: Select Location", choices = location_iid_map),
+    selectInput("location", "Step 1: Select Location", choices = location_iid_map2),
     
     #this is kind of confusing. The idea is that multiple breeders might be working at same location (Florida) and they should be able to track crosses independently, even though cane lines are combined
     #so crossesid refers to crosses a specific breeder is making
@@ -122,7 +125,11 @@ ui <- dashboardPage(
                tabName = "flowering",
                icon = icon("seedling")
       ),
-      menuItem("Kinship/Pedigree",
+      # menuItem("Clone Properties",
+      #          tabName = "properties",
+      #          icon = icon("info")
+      # ),
+      menuItem("Pedigree/Properties",
                tabName = "kinship",
                icon = icon("people-group")
       ),
@@ -378,6 +385,24 @@ ui <- dashboardPage(
 
         
          ))),
+      
+      
+      # #### properties tab content ----
+      # tabItem(
+      #   tabName = "properties",
+      #   fluidRow(
+      #     box(
+      #       title="Basic Passport/Accession Property Information",
+      #       width=12,
+      #       actionButton(
+      #         inputId = "makeproperties",
+      #         label = "Get Clone Passport Data"
+      #       ),
+      #       p("This table shows you selected passport data for flowering clones")
+      #     ), 
+      #     DTOutput("propertiesTable"),
+      #   )
+      # ),
 
       ### Pedigree tab content ----
 
@@ -742,17 +767,21 @@ server <- function(input, output, session) {
   
   # Call the server functions from separate files
   inventory_init <- flowering_server(input, output, session, reactive_date, reactive_iid, dataSource )
+  #properties_server(input, output, session, reactive_iid, inventory_init, clone_assignments)
   pedigree_server(input, output, session, reactive_iid, selectedClone, inventory_init, clone_assignments)
   performance_server(input, output, session, reactive_iid, rv, rv_trait_scatter, inventory_init, clone_assignments)
   crosses_server(input, output, session, reactive_cid, inventory_init, clone_assignments, rv)
   download_page_server(input, output, session, reactive_date)
   
+  ###this has a bug 
+  
   # Output for inventory pointer
-  output$inventoryPointer <- renderText({
-    location <- names(location_iid_map)[location_iid_map == input$location]
-    paste("Location:", location, "-", unique(brapi::ba_studies_table(con = brap, studyDbId = input$location)$studyName))
-  })
+  # output$inventoryPointer <- renderText({
+  #   #location <- names(location_iid_map2)[location_iid_map2 == input$location]
+  #   #paste("Location:", location, "-", unique(brapi::ba_studies_table(con = brap, studyDbId = input$location)$studyName))
+  # })
   # Output for cross pointer
+  
   output$crossPointer <- renderText({
     validate(
       need(input$crossesid != "", "Please chose a breeder login:")

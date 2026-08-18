@@ -94,7 +94,7 @@
       "Hash": "6a72e94a8c9be4ef719af3aa3628f2dc",
       "Requirements": []
     },
-   "SimpleMating": {
+    "SimpleMating": {
       "Package": "SimpleMating",
       "Version": "0.0.9002",
       "Source": "GitHub",
@@ -189,11 +189,11 @@
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "cip-riu-brapi",
       "RemoteUsername": "keocorak",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "2be46fd9e4ed36f1fb802dc2097e291786b575b3",
-      "Hash": "c6e105663dfe87011243fcf17cc4e701",
+      "RemoteRepo": "cip-riu-brapi",
+      "RemoteRef": "master",
+      "RemoteSha": "2a5b8239639ec9184dda10856aa47baf6824d18d",
+      "Hash": "d50ffe3bf13565cc88082a866bf05557",
       "Requirements": [
         "assertthat",
         "curl",
