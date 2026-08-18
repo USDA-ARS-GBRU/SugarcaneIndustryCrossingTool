@@ -23,28 +23,48 @@ pedigree_server <- function(input, output, session, reactive_iid, selectedClone,
         
         germplasm <- germplasm[which(germplasm$Clone %in% display),]
         
-        tmp <- stripClass(
+        studies_list<-jsonlite::fromJSON(ba_studies(brap2, trialDbId = reactive_iid(), pageSize=2000, rclass="json"))$result$data
+        
+        tmp=data.frame()
+        
+        for(i in 1:dim(studies_list)[1]){
+          studyDbId=as.character(studies_list[i,"studyDbId"])
+          
+         germ_details <- stripClass(
           as.data.frame(
-            ba_germplasm_details2(con = brap2, germplasmQuery = as.character(paste0("?studyDbId=", reactive_iid(), "&pageSize=2000")), rclass = "data.frame")
+            ba_germplasm_details2(con = brap2, germplasmQuery = as.character(paste0("?studyDbId=", studyDbId, "&pageSize=2000")), rclass = "data.frame")
           ),
           classString = "ba_germplasm_details"
         )
-
-        pedigree <- tmp[tmp$data.germplasmName %in% germplasm$Clone, c("data.germplasmName", "data.germplasmDbId", "data.pedigree")] %>%
-          dplyr::rename(Clone = data.germplasmName, Pedigree = data.pedigree)
-
-        #note: could rewrite ba_germplam_progeny to speed performance
-        
-        for (i in 1:dim(pedigree)[1]) {
-          pedigree[i, 4] <-
-            fromJSON(brapi::ba_germplasm_progeny(con = brap, germplasmDbId = as.character(pedigree[i, 2]), rclass = "json"))$metadata$pagination$totalCount
+          
+          if(inherits(germ_details$x, "try-error")){
+            tmp<-tmp
+          } else {
+            tmp<-bind_rows(tmp, germ_details )
+          } 
+          
         }
 
-        colnames(pedigree)[4] <- "Number.Progeny"
-      
-      
-        pedigree<-pedigree[,-which(colnames(pedigree) == "data.germplasmDbId")]
+        col_additional_props<-grep("additionalProps", colnames(tmp), value=TRUE)
         
+        pedigree <- tmp[tmp$data.germplasmName %in% germplasm$Clone, c("data.germplasmName", "data.germplasmDbId", "data.pedigree", col_additional_props)] %>%
+          dplyr::rename(Clone = data.germplasmName, Pedigree = data.pedigree) %>% 
+          dplyr::select(!data.germplasmDbId)
+        
+        colnames(pedigree)<-gsub("data.additionalInfo.additionalProps.","", colnames(pedigree))
+
+        pedigree<-unique(pedigree)
+        
+        #this is slow and slighly redundant with the previous crosses section. remove it for now
+        #note: could rewrite ba_germplam_progeny to speed performance
+        # for (i in 1:dim(pedigree)[1]) {
+        #   pedigree[i, 4] <-
+        #     fromJSON(brapi::ba_germplasm_progeny(con = brap, germplasmDbId = as.character(pedigree[i, 2]), rclass = "json"))$metadata$pagination$totalCount
+        # }
+        # 
+        # colnames(pedigree)[4] <- "Number.Progeny"
+
+      
         return(pedigree)
       }, error = function(e) {
         showNotification(paste("Error getting pedigree data:", e$message), type = "error", duration = NULL)

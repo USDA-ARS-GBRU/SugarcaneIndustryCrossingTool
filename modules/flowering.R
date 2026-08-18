@@ -6,9 +6,26 @@ flowering_server <- function(input, output, session, reactive_date, reactive_iid
         # Validate inputs
         req(reactive_date(), reactive_iid())
      
+      #get list of studies for input$location
       
-      inven <- data.frame(brapi::ba_studies_observations_brapi2(con = brap2, studyDbId = reactive_iid(), rclass="data.frame")) %>%
-        filter(grepl("Tassel Count", observationVariableName))
+      studies_list<-jsonlite::fromJSON(ba_studies(brap2, trialDbId = reactive_iid(), pageSize=2000, rclass="json"))$result$data
+      
+      inven=data.frame()
+     
+       for(i in 1:dim(studies_list)[1]){
+        studyDbId=as.character(studies_list[i,"studyDbId"])
+        
+        tmp<-data.frame(brapi::ba_studies_observations_brapi2(con = brap2, studyDbId = studyDbId , rclass="data.frame"))
+          
+        if(dim(tmp)[1]==0){
+          inven<-inven 
+          } else{
+          tmp<-tmp %>% filter(grepl("Tassel Count", observationVariableName))
+          inven<-rbind(inven, tmp )
+          } 
+        
+      }
+    
 
       inven_date<-filter(inven, grepl(reactive_date(), observationTimeStamp)) %>% 
           select(germplasmName, germplasmDbId, observationVariableName, value, observationTimeStamp) %>% 
