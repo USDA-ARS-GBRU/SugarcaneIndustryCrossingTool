@@ -18,6 +18,14 @@ properties_server <- function(input, output, session, reactive_iid, inventory_in
 
         germplasm <- germplasm[which(germplasm$Clone %in% display), ]
         
+        studies_list<-jsonlite::fromJSON(ba_studies(brap2, trialDbId = reactive_iid(), pageSize=2000, rclass="json"))$result$data
+        
+        tmp=data.frame()
+        
+        for(i in 1:dim(studies_list)[1]){
+          
+          studyDbId=as.character(studies_list[i,"studyDbId"])
+          
         tmp <- stripClass(
           as.data.frame(
             ba_germplasm_details2(con = brap2, germplasmQuery = as.character(paste0("?studyDbId=", reactive_iid(), "&pageSize=2000")), rclass = "data.frame")
@@ -25,6 +33,7 @@ properties_server <- function(input, output, session, reactive_iid, inventory_in
           classString = "ba_germplasm_details"
         )
         
+        }
         col_additional_props<-grep("additionalProps", colnames(tmp), value=TRUE)
         
         properties <- tmp[tmp$data.germplasmName %in% germplasm$Clone, c("data.germplasmName", "data.germplasmDbId", col_additional_props)] %>%
