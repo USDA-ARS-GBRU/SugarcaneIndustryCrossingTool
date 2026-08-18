@@ -48,7 +48,7 @@ pedigree_server <- function(input, output, session, reactive_iid, selectedClone,
         pedigree <- tmp[tmp$data.germplasmName %in% germplasm$Clone, c("data.germplasmName", "data.germplasmDbId", "data.pedigree")] %>%
           dplyr::rename(Clone = data.germplasmName, Pedigree = data.pedigree)
 
-        pedigree<-pedigree[unique(pedigree$Clone), ]
+        pedigree<-unique(pedigree)
         
         #note: could rewrite ba_germplam_progeny to speed performance
         
